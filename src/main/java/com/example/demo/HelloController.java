@@ -12,4 +12,9 @@ public class HelloController {
     public ResponseEntity<String> sayHello(){
         return new ResponseEntity<>("Hello World", HttpStatus.OK);
     }
+
+    @GetMapping("/whats-up")
+    public ResponseEntity<String> sayWhatsUp(){
+        return new ResponseEntity<>("What's Up", HttpStatus.OK);
+    }
 }

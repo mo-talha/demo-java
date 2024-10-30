@@ -1,32 +1,43 @@
 steps:
-  # Make mvnw executable
-  - name: 'ubuntu'
-    args: ['chmod', '+x', 'mvnw']
-
-  # Rest of your existing steps
-  - name: 'maven:3.9.9-eclipse-temurin-21-alpine'
-    entrypoint: 'mvn'
-    args: ['clean', 'package', '-DskipTests']
-
+  # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/tidal-mote-440113-g9/demo-app', '.']
+    args: ['build', '-t', '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${_VERSION}', '.']
 
+  # Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/tidal-mote-440113-g9/demo-app']
+    args: ['push', '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${_VERSION}']
 
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
-    args:
-      - 'run'
-      - 'deploy'
-      - 'demo-app'
-      - '--image'
-      - 'gcr.io/tidal-mote-440113-g9/demo-app'
-      - '--region'
-      - 'us-central1'
-      - '--platform'
-      - 'managed'
-      - '--allow-unauthenticated'
+  # Deploy the Cloud Run service
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: [
+      'run', 'deploy', '${_SERVICE_NAME}',
+      '--image', '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${_VERSION}',
+      '--platform', 'managed',
+      '--region', '${_REGION}',
+      '${_AUTH}',
+      '--service-account=${_SA_ACC}',
+      '${_PORT}',
+      '--${_MAX_INC}',
+      '--set-env-vars=SPRING_PROFILES_ACTIVE=prod',
+      '--cpu-boost'
+    ]
 
 images:
-  - 'gcr.io/tidal-mote-440113-g9/demo-app'
+  - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${_VERSION}'
+
+substitutions:
+  _PROJECT_ID: tidal-mote-440113-g9
+  _REGION: us-central1
+  _IMAGE_NAME: demo-app
+  _REPO_NAME: demo-java
+  _SERVICE_NAME: demo-app
+  _VERSION: v1.0
+  _AUTH: --allow-unauthenticated
+  _SA_ACC: 774026363469-compute@developer.gserviceaccount.com
+  _TRAFFIC: all-traffic
+  _PORT: --port=8086
+  _MEMORY: 4096Mi
+  _MAX_INC: max-instances=10
+
+options:
+  logging: CLOUD_LOGGING_ONLY

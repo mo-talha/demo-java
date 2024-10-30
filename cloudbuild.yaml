@@ -6,18 +6,18 @@ trigger:
 steps:
   # Step 1: Build Docker image using Dockerfile at the root of the directory
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/my-app:latest', '.']
+    args: ['build', '-t', 'gcr.io/tidal-mote-440113-g9/demo-app', '.']
 
   # Step 2: Push the Docker image to Google Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/my-app:latest']
+    args: ['push', 'gcr.io/tidal-mote-440113-g9/demo-app']
 
   # Step 3: Deploy the image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args: [
-      'run', 'deploy', 'my-app', # App name
-      '--image', 'gcr.io/$PROJECT_ID/my-app:latest', # Image to deploy
+      'run', 'deploy', 'demo-app', # App name
+      '--image', 'gcr.io/tidal-mote-440113-g9/demo-app', # Image to deploy
       '--region', 'us-central1',  # Specify your region
       '--platform', 'managed',
       '--allow-unauthenticated'
@@ -25,7 +25,7 @@ steps:
 
 # Specify images to be pushed
 images:
-  - 'gcr.io/$PROJECT_ID/my-app:latest'
+  - 'gcr.io/tidal-mote-440113-g9/demo-app'
 
 # Optional: Notifications can be enabled here by specifying your email
 # substitutions:

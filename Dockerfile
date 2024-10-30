@@ -1,32 +1,20 @@
-# This trigger initiates builds when there are changes in the specified branch (master)
-trigger:
-  branch: 'master'
+# Use an official Maven image to build the app
+FROM maven:3.9.9-eclipse-temurin-21-alpine AS build
+WORKDIR /app
+COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
+COPY src ./src
 
-# Cloud Build steps for building and deploying to Cloud Run
-steps:
-  # Step 1: Build Docker image using Dockerfile at the root of the directory
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/my-app:latest', '.']
+# Make the Maven wrapper script executable
+RUN chmod +x mvnw
 
-  # Step 2: Push the Docker image to Google Container Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/my-app:latest']
+# Run Maven with the wrapper script
+RUN ./mvnw clean package -DskipTests
 
-  # Step 3: Deploy the image to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
-    args: [
-      'run', 'deploy', 'my-app', # App name
-      '--image', 'gcr.io/$PROJECT_ID/my-app:latest', # Image to deploy
-      '--region', 'us-central1',  # Specify your region
-      '--platform', 'managed',
-      '--allow-unauthenticated'
-    ]
-
-# Specify images to be pushed
-images:
-  - 'gcr.io/$PROJECT_ID/my-app:latest'
-
-# Optional: Notifications can be enabled here by specifying your email
-# substitutions:
-#   _EMAIL: 'your_email@example.com'
+# Use an official OpenJDK image for a lightweight runtime
+FROM eclipse-temurin:21-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]

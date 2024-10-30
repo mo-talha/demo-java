@@ -1,6 +1,6 @@
-# This trigger initiates builds when there are changes in the specified branch (main)
+# This trigger initiates builds when there are changes in the specified branch (master)
 trigger:
-  branch: 'main'
+  branch: 'master'
 
 # Cloud Build steps for building and deploying to Cloud Run
 steps:

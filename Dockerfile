@@ -2,7 +2,13 @@
 FROM maven:3.9.9-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
 COPY src ./src
+
+# Make Maven wrapper executable
+RUN chmod +x mvnw
+
 RUN mvn clean package -DskipTests
 
 # Use an official OpenJDK image for a lightweight runtime

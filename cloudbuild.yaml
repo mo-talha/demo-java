@@ -1,0 +1,21 @@
+steps:
+# step-1: Build the Docker images
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/tidal-mote-440113-g9/demo-app', '.']
+
+# step-2: Push the docker image to Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/tidal-mote-440113-g9/demo-app']
+
+# step-3: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: ['run', 'deploy', 'demo-app-v1',
+           '--image', 'gcr.io/tidal-mote-440113-g9/demo-app',
+           '--platform', 'managed',
+           '--region', 'us-central1',
+           '--allow-unauthenticated'
+    ]
+    
+images:
+  - 'gcr.io/tidal-mote-440113-g9/demo-app'

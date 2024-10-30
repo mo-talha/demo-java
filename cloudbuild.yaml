@@ -1,18 +1,19 @@
 steps:
-  # Build with Maven directly from container
+  # Make mvnw executable
+  - name: 'ubuntu'
+    args: ['chmod', '+x', 'mvnw']
+
+  # Rest of your existing steps
   - name: 'maven:3.9.9-eclipse-temurin-21-alpine'
     entrypoint: 'mvn'
     args: ['clean', 'package', '-DskipTests']
 
-  # Build the container
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/tidal-mote-440113-g9/demo-app', '.']
 
-  # Push the container
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/tidal-mote-440113-g9/demo-app']
 
-  # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
